@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Loader2, AlertCircle, CheckCircle, XCircle, MessageSquare, Mail, Phone,
-  Radio, Search, Pencil, Check, X,
+  Radio, Search, Pencil, Check, X, ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import { api } from '../api'
 
@@ -158,30 +158,49 @@ function SenderRow({ ws, onSaved }) {
   )
 }
 
+const SENDERS_PAGE_SIZE = 50
+
 function SendersSection() {
-  const [senders, setSenders] = useState(null)
+  const [result, setResult] = useState(null) // { senders, total, limit, offset }
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [query, setQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
+  const [offset, setOffset] = useState(0)
 
+  // Debounce the filter box; any new query snaps back to the first page.
   useEffect(() => {
-    api.senders()
-      .then((d) => setSenders(d.senders || []))
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false))
-  }, [])
+    const t = setTimeout(() => {
+      setDebouncedQuery(query.trim())
+      setOffset(0)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [query])
+
+  // Server-side search + pagination. Re-runs on debounced query or page change.
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    setError('')
+    api.senders({ search: debouncedQuery || undefined, limit: SENDERS_PAGE_SIZE, offset })
+      .then((d) => { if (active) setResult(d) })
+      .catch((err) => { if (active) { setError(err.message); setResult(null) } })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [debouncedQuery, offset])
 
   const onSaved = (id, sms_sender_name) => {
-    setSenders((list) => list.map((w) => (w.id === id ? { ...w, sms_sender_name } : w)))
+    setResult((r) => (r
+      ? { ...r, senders: r.senders.map((w) => (w.id === id ? { ...w, sms_sender_name } : w)) }
+      : r))
   }
 
-  const filtered = (senders || []).filter((w) => {
-    if (!query) return true
-    const q = query.toLowerCase()
-    return (w.name || '').toLowerCase().includes(q)
-      || (w.email || '').toLowerCase().includes(q)
-      || (w.sms_sender_name || '').toLowerCase().includes(q)
-  })
+  const senders = result?.senders || []
+  const total = result?.total || 0
+  const pageStart = total === 0 ? 0 : offset + 1
+  const pageEnd = Math.min(offset + SENDERS_PAGE_SIZE, total)
+  const hasPrev = offset > 0
+  const hasNext = offset + SENDERS_PAGE_SIZE < total
 
   return (
     <section className="space-y-3">
@@ -204,14 +223,32 @@ function SendersSection() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center h-24"><Loader2 className="w-6 h-6 animate-spin text-indigo-500" /></div>
-      ) : error ? (
+      {error ? (
         <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 rounded-xl p-4">
           <AlertCircle className="w-5 h-5 flex-shrink-0" /><p className="text-sm">{error}</p>
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+            <p className="text-sm text-gray-500 flex items-center gap-2">
+              {loading && <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-500" />}
+              {total > 0
+                ? <>Showing <span className="font-medium text-gray-700">{pageStart}–{pageEnd}</span> of <span className="font-medium text-gray-700">{total}</span></>
+                : (loading ? 'Loading…' : 'No workspaces match.')}
+            </p>
+            {total > SENDERS_PAGE_SIZE && (
+              <div className="flex items-center gap-1">
+                <button disabled={!hasPrev || loading} onClick={() => setOffset((o) => Math.max(o - SENDERS_PAGE_SIZE, 0))}
+                  className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button disabled={!hasNext || loading} onClick={() => setOffset((o) => o + SENDERS_PAGE_SIZE)}
+                  className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -223,10 +260,10 @@ function SendersSection() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filtered.length === 0 ? (
-                  <tr><td colSpan={4} className="px-5 py-10 text-center text-sm text-gray-400">No workspaces match.</td></tr>
+                {senders.length === 0 ? (
+                  <tr><td colSpan={4} className="px-5 py-10 text-center text-sm text-gray-400">{loading ? 'Loading…' : 'No workspaces match.'}</td></tr>
                 ) : (
-                  filtered.map((ws) => <SenderRow key={ws.id} ws={ws} onSaved={onSaved} />)
+                  senders.map((ws) => <SenderRow key={ws.id} ws={ws} onSaved={onSaved} />)
                 )}
               </tbody>
             </table>
