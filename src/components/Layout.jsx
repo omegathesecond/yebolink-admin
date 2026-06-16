@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Users, LogOut, Zap, Lock } from 'lucide-react'
+import { LayoutDashboard, Users, LogOut, Zap, Lock, MessageSquare, Settings } from 'lucide-react'
 
 export default function Layout() {
   const navigate = useNavigate()
@@ -39,6 +39,12 @@ export default function Layout() {
           </NavLink>
           <NavLink to="/workspaces" className={navClass}>
             <Users className="w-4 h-4" /> Workspaces
+          </NavLink>
+          <NavLink to="/messages" className={navClass}>
+            <MessageSquare className="w-4 h-4" /> Messages
+          </NavLink>
+          <NavLink to="/settings" className={navClass}>
+            <Settings className="w-4 h-4" /> Settings
           </NavLink>
         </nav>
 
