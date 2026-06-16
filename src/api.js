@@ -49,7 +49,7 @@ export const api = {
 
   // Providers & senders config
   providers: () => request('/providers'),
-  senders: () => request('/senders'),
+  senders: (params) => request(`/senders${qs(params)}`),
   updateSender: (id, sms_sender_name) =>
     request(`/workspaces/${id}/sender`, {
       method: 'PATCH',
