@@ -23,6 +23,15 @@ async function request(path, options = {}) {
   return data.data
 }
 
+function qs(params = {}) {
+  const sp = new URLSearchParams()
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== '') sp.append(k, v)
+  })
+  const s = sp.toString()
+  return s ? `?${s}` : ''
+}
+
 export const api = {
   stats: () => request('/stats'),
   workspaces: () => request('/workspaces'),
@@ -34,4 +43,25 @@ export const api = {
     }),
   activate: (id) => request(`/workspaces/${id}/activate`, { method: 'POST' }),
   deactivate: (id) => request(`/workspaces/${id}/deactivate`, { method: 'POST' }),
+
+  // Platform-wide message log search
+  messages: (params) => request(`/messages${qs(params)}`),
+
+  // Providers & senders config
+  providers: () => request('/providers'),
+  senders: () => request('/senders'),
+  updateSender: (id, sms_sender_name) =>
+    request(`/workspaces/${id}/sender`, {
+      method: 'PATCH',
+      body: JSON.stringify({ sms_sender_name }),
+    }),
+
+  // API key rotation (support)
+  createApiKey: (id, name, scopes) =>
+    request(`/workspaces/${id}/api-keys`, {
+      method: 'POST',
+      body: JSON.stringify({ name, scopes }),
+    }),
+  revokeApiKey: (id, keyId) =>
+    request(`/workspaces/${id}/api-keys/${keyId}/revoke`, { method: 'POST' }),
 }
