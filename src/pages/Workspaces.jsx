@@ -124,7 +124,7 @@ export default function Workspaces() {
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
-  const totalCredits = workspaces.reduce((sum, ws) => sum + (ws.credits || 0), 0)
+  const totalCredits = workspaces.reduce((sum, ws) => sum + Number(ws.credits_balance || 0), 0)
   const activeCount = workspaces.filter(ws => ws.is_active).length
 
   const toggleActive = async (ws) => {
@@ -229,7 +229,7 @@ export default function Workspaces() {
                     </td>
                     <td className="px-3 py-3.5 text-gray-600">{ws.country || '—'}</td>
                     <td className="px-3 py-3.5 text-right font-bold text-indigo-600">
-                      {ws.credits != null ? ws.credits.toLocaleString() : '—'}
+                      {ws.credits_balance != null ? Number(ws.credits_balance).toLocaleString() : '—'}
                     </td>
                     <td className="px-3 py-3.5 text-right text-gray-600">
                       {ws.message_count != null ? ws.message_count.toLocaleString() : '—'}
