@@ -4,6 +4,8 @@ import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import Workspaces from './pages/Workspaces'
 import WorkspaceDetail from './pages/WorkspaceDetail'
+import Messages from './pages/Messages'
+import Settings from './pages/Settings'
 
 function PrivateRoute({ children }) {
   return localStorage.getItem('ybk_admin_key') ? children : <Navigate to="/" replace />
@@ -19,6 +21,12 @@ export default function App() {
       <Route path="/workspaces" element={<PrivateRoute><Layout /></PrivateRoute>}>
         <Route index element={<Workspaces />} />
         <Route path=":id" element={<WorkspaceDetail />} />
+      </Route>
+      <Route path="/messages" element={<PrivateRoute><Layout /></PrivateRoute>}>
+        <Route index element={<Messages />} />
+      </Route>
+      <Route path="/settings" element={<PrivateRoute><Layout /></PrivateRoute>}>
+        <Route index element={<Settings />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

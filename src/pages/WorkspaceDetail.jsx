@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Loader2, AlertCircle, Plus, CheckCircle, XCircle, X,
   MessageSquare, CreditCard, Key, LayoutDashboard, Globe, Mail, Phone,
-  Calendar, Hash, User,
+  Calendar, Hash, User, Ban, Copy,
 } from 'lucide-react'
 import { api } from '../api'
 
@@ -280,7 +280,7 @@ export default function WorkspaceDetail() {
       {tab === 'Overview' && <OverviewTab ws={ws} messages={messages} transactions={transactions} apiKeys={apiKeys} />}
       {tab === 'Messages' && <MessagesTab messages={messages} />}
       {tab === 'Transactions' && <TransactionsTab transactions={transactions} />}
-      {tab === 'API Keys' && <ApiKeysTab apiKeys={apiKeys} />}
+      {tab === 'API Keys' && <ApiKeysTab apiKeys={apiKeys} workspaceId={id} onChange={fetchData} />}
 
       {/* Add Credits Modal */}
       {showCredits && (
@@ -460,56 +460,238 @@ function TransactionsTab({ transactions }) {
 
 // ─── API Keys Tab ─────────────────────────────────────────────────────────────
 
-function ApiKeysTab({ apiKeys }) {
-  if (apiKeys.length === 0) {
-    return (
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-        <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-          <Key className="w-10 h-10 mb-3 opacity-40" />
-          <p className="text-sm font-medium">No API keys</p>
-        </div>
-      </div>
-    )
+function ApiKeysTab({ apiKeys, workspaceId, onChange }) {
+  const [showCreate, setShowCreate] = useState(false)
+  const [createdKey, setCreatedKey] = useState(null) // { key, name }
+  const [revokingId, setRevokingId] = useState(null)
+  const [error, setError] = useState('')
+
+  const revoke = async (keyId) => {
+    if (!window.confirm('Revoke this API key? It will stop working immediately.')) return
+    setRevokingId(keyId)
+    setError('')
+    try {
+      await api.revokeApiKey(workspaceId, keyId)
+      await onChange()
+    } catch (err) {
+      setError(err.message)
+    }
+    setRevokingId(null)
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-100 bg-gray-50/50">
-              <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-5 py-3">Name</th>
-              <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">Prefix</th>
-              <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">Scopes</th>
-              <th className="text-center text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">Status</th>
-              <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">Last Used</th>
-              <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-5 py-3">Created</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {apiKeys.map((k, i) => (
-              <tr key={k.id || i} className="hover:bg-gray-50/50 transition-colors">
-                <td className="px-5 py-3.5 font-medium text-gray-800">{k.name || '—'}</td>
-                <td className="px-3 py-3.5">
-                  <code className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-mono">
-                    {k.prefix || '—'}
-                  </code>
-                </td>
-                <td className="px-3 py-3.5 text-gray-600 text-xs">
-                  {Array.isArray(k.scopes) ? k.scopes.join(', ') : (k.scopes || '—')}
-                </td>
-                <td className="px-3 py-3.5 text-center">
-                  {k.is_active !== false
-                    ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Active</span>
-                    : <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-600">Inactive</span>
-                  }
-                </td>
-                <td className="px-3 py-3.5 text-gray-500 text-xs whitespace-nowrap">{fmt(k.last_used_at)}</td>
-                <td className="px-5 py-3.5 text-gray-500 text-xs whitespace-nowrap">{fmt(k.created_at)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-500">
+          Rotate keys for locked-out customers. New keys are shown once.
+        </p>
+        <button
+          onClick={() => setShowCreate(true)}
+          className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+        >
+          <Plus className="w-4 h-4" /> Create API Key
+        </button>
+      </div>
+
+      {error && (
+        <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 rounded-xl p-3">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" /><p className="text-sm">{error}</p>
+        </div>
+      )}
+
+      {apiKeys.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+            <Key className="w-10 h-10 mb-3 opacity-40" />
+            <p className="text-sm font-medium">No API keys</p>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50/50">
+                  <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-5 py-3">Name</th>
+                  <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">Prefix</th>
+                  <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">Scopes</th>
+                  <th className="text-center text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">Status</th>
+                  <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">Last Used</th>
+                  <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">Created</th>
+                  <th className="text-right text-xs font-semibold text-gray-400 uppercase tracking-wider px-5 py-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {apiKeys.map((k, i) => {
+                  const active = k.is_active !== false
+                  return (
+                    <tr key={k.id || i} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-5 py-3.5 font-medium text-gray-800">{k.name || '—'}</td>
+                      <td className="px-3 py-3.5">
+                        <code className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-mono">
+                          {k.key_prefix || k.prefix || '—'}
+                        </code>
+                      </td>
+                      <td className="px-3 py-3.5 text-gray-600 text-xs">
+                        {Array.isArray(k.scopes) ? k.scopes.join(', ') : (k.scopes || '—')}
+                      </td>
+                      <td className="px-3 py-3.5 text-center">
+                        {active
+                          ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Active</span>
+                          : <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-600">Revoked</span>
+                        }
+                      </td>
+                      <td className="px-3 py-3.5 text-gray-500 text-xs whitespace-nowrap">{fmt(k.last_used_at)}</td>
+                      <td className="px-3 py-3.5 text-gray-500 text-xs whitespace-nowrap">{fmt(k.created_at)}</td>
+                      <td className="px-5 py-3.5 text-right">
+                        {active ? (
+                          <button
+                            onClick={() => revoke(k.id)}
+                            disabled={revokingId === k.id}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                          >
+                            {revokingId === k.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Ban className="w-3.5 h-3.5" />} Revoke
+                          </button>
+                        ) : (
+                          <span className="text-xs text-gray-400">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {showCreate && (
+        <CreateApiKeyModal
+          workspaceId={workspaceId}
+          onClose={() => setShowCreate(false)}
+          onCreated={async (data) => {
+            setShowCreate(false)
+            setCreatedKey({ key: data.key, name: data.name })
+            await onChange()
+          }}
+        />
+      )}
+
+      {createdKey && (
+        <NewKeyModal createdKey={createdKey} onClose={() => setCreatedKey(null)} />
+      )}
+    </div>
+  )
+}
+
+// ─── Create API Key Modal ─────────────────────────────────────────────────────
+
+const ALL_SCOPES = ['send_messages', 'read_messages']
+
+function CreateApiKeyModal({ workspaceId, onClose, onCreated }) {
+  const [name, setName] = useState('')
+  const [scopes, setScopes] = useState([...ALL_SCOPES])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const toggleScope = (s) =>
+    setScopes((cur) => (cur.includes(s) ? cur.filter((x) => x !== s) : [...cur, s]))
+
+  const submit = async (e) => {
+    e.preventDefault()
+    if (!name.trim()) return setError('Enter a name for the key.')
+    setLoading(true)
+    setError('')
+    try {
+      const data = await api.createApiKey(workspaceId, name.trim(), scopes)
+      onCreated(data)
+    } catch (err) {
+      setError(err.message)
+    }
+    setLoading(false)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h3 className="font-semibold text-gray-900">Create API Key</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors"><X className="w-5 h-5" /></button>
+        </div>
+        <form onSubmit={submit} className="px-6 py-4 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <input
+              type="text" value={name} onChange={(e) => setName(e.target.value)} autoFocus
+              placeholder="e.g. Production key (support reissue)"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Scopes</label>
+            <div className="space-y-1.5">
+              {ALL_SCOPES.map((s) => (
+                <label key={s} className="flex items-center gap-2 text-sm text-gray-600">
+                  <input type="checkbox" checked={scopes.includes(s)} onChange={() => toggleScope(s)}
+                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                  <code className="text-xs">{s}</code>
+                </label>
+              ))}
+            </div>
+          </div>
+          {error && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
+          <div className="flex gap-3 pt-1">
+            <button type="button" onClick={onClose}
+              className="flex-1 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">Cancel</button>
+            <button type="submit" disabled={loading || !name.trim() || scopes.length === 0}
+              className="flex-1 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed">
+              {loading ? 'Creating…' : 'Create Key'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// ─── New Key (shown once) Modal ───────────────────────────────────────────────
+
+function NewKeyModal({ createdKey, onClose }) {
+  const [copied, setCopied] = useState(false)
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(createdKey.key)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      setCopied(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h3 className="font-semibold text-gray-900">API Key Created</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="px-6 py-4 space-y-4">
+          <p className="text-sm text-gray-500">
+            <span className="font-medium text-gray-800">{createdKey.name}</span> — copy this key now. It will not be shown again.
+          </p>
+          <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5">
+            <code className="text-xs font-mono text-gray-800 break-all flex-1">{createdKey.key}</code>
+            <button onClick={copy}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors flex-shrink-0">
+              {copied ? <CheckCircle className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />} {copied ? 'Copied' : 'Copy'}
+            </button>
+          </div>
+          <div className="flex justify-end">
+            <button onClick={onClose}
+              className="px-4 py-2.5 bg-gray-100 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-200 transition-colors">Done</button>
+          </div>
+        </div>
       </div>
     </div>
   )
