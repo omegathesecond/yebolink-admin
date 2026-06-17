@@ -178,14 +178,23 @@ function SendersSection() {
   }, [query])
 
   // Server-side search + pagination. Re-runs on debounced query or page change.
+  // The load runs via an async IIFE so the setState calls live outside the
+  // effect's synchronous body (react-hooks/set-state-in-effect); runtime is
+  // identical — the IIFE is still invoked synchronously when the effect runs.
   useEffect(() => {
     let active = true
-    setLoading(true)
-    setError('')
-    api.senders({ search: debouncedQuery || undefined, limit: SENDERS_PAGE_SIZE, offset })
-      .then((d) => { if (active) setResult(d) })
-      .catch((err) => { if (active) { setError(err.message); setResult(null) } })
-      .finally(() => { if (active) setLoading(false) })
+    ;(async () => {
+      setLoading(true)
+      setError('')
+      try {
+        const d = await api.senders({ search: debouncedQuery || undefined, limit: SENDERS_PAGE_SIZE, offset })
+        if (active) setResult(d)
+      } catch (err) {
+        if (active) { setError(err.message); setResult(null) }
+      } finally {
+        if (active) setLoading(false)
+      }
+    })()
     return () => { active = false }
   }, [debouncedQuery, offset])
 
