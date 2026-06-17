@@ -55,6 +55,13 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ sms_sender_name }),
     }),
+  // Review a flagged sender: 'approve' keeps it & clears the flag, 'reject' clears
+  // the sender entirely. Neither re-runs AI verification.
+  reviewSender: (id, action) =>
+    request(`/workspaces/${id}/sender`, {
+      method: 'PATCH',
+      body: JSON.stringify({ review: action }),
+    }),
 
   // API key rotation (support)
   createApiKey: (id, name, scopes) =>

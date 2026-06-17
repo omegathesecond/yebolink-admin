@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import {
   Loader2, AlertCircle, CheckCircle, XCircle, MessageSquare, Mail, Phone,
   Radio, Search, Pencil, Check, X, ChevronLeft, ChevronRight,
+  AlertTriangle, ShieldCheck, Ban,
 } from 'lucide-react'
 import { api } from '../api'
 
@@ -84,18 +85,20 @@ function ProvidersSection() {
 
 // ─── Senders (per-workspace SMS sender ID — read by the send path) ─────────────
 
-function SenderRow({ ws, onSaved }) {
+function SenderRow({ ws, onSaved, onReviewed }) {
   const [editing, setEditing] = useState(false)
   const [value, setValue] = useState(ws.sms_sender_name || '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [reviewing, setReviewing] = useState('') // '' | 'approve' | 'reject'
+  const [reviewError, setReviewError] = useState('')
 
   const save = async () => {
     setSaving(true)
     setError('')
     try {
       const data = await api.updateSender(ws.id, value.trim())
-      onSaved(ws.id, data.sms_sender_name)
+      onSaved(ws.id, data.sms_sender_name, data.sms_sender_flagged)
       setEditing(false)
     } catch (err) {
       setError(err.message)
@@ -107,6 +110,18 @@ function SenderRow({ ws, onSaved }) {
     setValue(ws.sms_sender_name || '')
     setError('')
     setEditing(false)
+  }
+
+  const review = async (action) => {
+    setReviewing(action)
+    setReviewError('')
+    try {
+      const data = await api.reviewSender(ws.id, action)
+      onReviewed(ws.id, { sms_sender_name: data.sms_sender_name, sms_sender_flagged: data.sms_sender_flagged })
+    } catch (err) {
+      setReviewError(err.message)
+      setReviewing('')
+    }
   }
 
   return (
@@ -139,13 +154,36 @@ function SenderRow({ ws, onSaved }) {
             {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
           </div>
         ) : (
-          <div className="flex items-center gap-2">
-            {ws.sms_sender_name
-              ? <code className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded font-mono">{ws.sms_sender_name}</code>
-              : <span className="text-xs text-gray-400 italic">Twilio number</span>}
-            <button onClick={() => setEditing(true)} className="p-1 text-gray-400 hover:text-indigo-600 transition-colors">
-              <Pencil className="w-3.5 h-3.5" />
-            </button>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              {ws.sms_sender_name
+                ? <code className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded font-mono">{ws.sms_sender_name}</code>
+                : <span className="text-xs text-gray-400 italic">Twilio number</span>}
+              <button onClick={() => setEditing(true)} className="p-1 text-gray-400 hover:text-indigo-600 transition-colors">
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            {ws.sms_sender_flagged && (
+              <div className="flex flex-col gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-2 max-w-xs">
+                <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700">
+                  <AlertTriangle className="w-3.5 h-3.5" /> Flagged for review
+                </span>
+                <p className="text-[11px] text-amber-600 leading-snug">
+                  Auto-approved by compliance but flagged. Approve to keep it, or reject to clear the sender.
+                </p>
+                <div className="flex items-center gap-1.5">
+                  <button onClick={() => review('approve')} disabled={!!reviewing}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 text-xs font-medium disabled:opacity-50">
+                    {reviewing === 'approve' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />} Approve
+                  </button>
+                  <button onClick={() => review('reject')} disabled={!!reviewing}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 text-xs font-medium disabled:opacity-50">
+                    {reviewing === 'reject' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Ban className="w-3.5 h-3.5" />} Reject
+                  </button>
+                </div>
+                {reviewError && <p className="text-xs text-red-600">{reviewError}</p>}
+              </div>
+            )}
           </div>
         )}
       </td>
@@ -166,6 +204,7 @@ function SendersSection() {
   const [error, setError] = useState('')
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
+  const [flaggedOnly, setFlaggedOnly] = useState(false)
   const [offset, setOffset] = useState(0)
 
   // Debounce the filter box; any new query snaps back to the first page.
@@ -177,22 +216,36 @@ function SendersSection() {
     return () => clearTimeout(t)
   }, [query])
 
-  // Server-side search + pagination. Re-runs on debounced query or page change.
+  // Server-side search + pagination. Re-runs on debounced query, flag filter, or page change.
   useEffect(() => {
     let active = true
     setLoading(true)
     setError('')
-    api.senders({ search: debouncedQuery || undefined, limit: SENDERS_PAGE_SIZE, offset })
+    api.senders({ search: debouncedQuery || undefined, flagged: flaggedOnly ? 'true' : undefined, limit: SENDERS_PAGE_SIZE, offset })
       .then((d) => { if (active) setResult(d) })
       .catch((err) => { if (active) { setError(err.message); setResult(null) } })
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
-  }, [debouncedQuery, offset])
+  }, [debouncedQuery, flaggedOnly, offset])
 
-  const onSaved = (id, sms_sender_name) => {
+  const toggleFlagged = () => { setFlaggedOnly((f) => !f); setOffset(0) }
+
+  const onSaved = (id, sms_sender_name, sms_sender_flagged) => {
     setResult((r) => (r
-      ? { ...r, senders: r.senders.map((w) => (w.id === id ? { ...w, sms_sender_name } : w)) }
+      ? { ...r, senders: r.senders.map((w) => (w.id === id ? { ...w, sms_sender_name, sms_sender_flagged: !!sms_sender_flagged } : w)) }
       : r))
+  }
+
+  // After approve/reject: merge the new state. When viewing the flagged-only queue,
+  // a no-longer-flagged sender drops out of the list (and the total ticks down).
+  const onReviewed = (id, patch) => {
+    setResult((r) => {
+      if (!r) return r
+      if (flaggedOnly && patch.sms_sender_flagged === false) {
+        return { ...r, senders: r.senders.filter((w) => w.id !== id), total: Math.max(r.total - 1, 0) }
+      }
+      return { ...r, senders: r.senders.map((w) => (w.id === id ? { ...w, ...patch } : w)) }
+    })
   }
 
   const senders = result?.senders || []
@@ -213,13 +266,26 @@ function SendersSection() {
             The alphanumeric sender shown on a workspace's SMS. Blank falls back to the Twilio number.
           </p>
         </div>
-        <div className="relative">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            value={query} onChange={(e) => setQuery(e.target.value)}
-            placeholder="Filter workspaces…"
-            className="pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-56"
-          />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleFlagged}
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+              flaggedOnly
+                ? 'bg-amber-100 border-amber-200 text-amber-700'
+                : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+            }`}
+            title="Show only senders flagged for compliance review"
+          >
+            <AlertTriangle className="w-4 h-4" /> Flagged only
+          </button>
+          <div className="relative">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              value={query} onChange={(e) => setQuery(e.target.value)}
+              placeholder="Filter workspaces…"
+              className="pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-56"
+            />
+          </div>
         </div>
       </div>
 
@@ -233,8 +299,8 @@ function SendersSection() {
             <p className="text-sm text-gray-500 flex items-center gap-2">
               {loading && <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-500" />}
               {total > 0
-                ? <>Showing <span className="font-medium text-gray-700">{pageStart}–{pageEnd}</span> of <span className="font-medium text-gray-700">{total}</span></>
-                : (loading ? 'Loading…' : 'No workspaces match.')}
+                ? <>Showing <span className="font-medium text-gray-700">{pageStart}–{pageEnd}</span> of <span className="font-medium text-gray-700">{total}</span>{flaggedOnly && ' flagged'}</>
+                : (loading ? 'Loading…' : (flaggedOnly ? 'No senders are flagged for review.' : 'No workspaces match.'))}
             </p>
             {total > SENDERS_PAGE_SIZE && (
               <div className="flex items-center gap-1">
@@ -261,9 +327,9 @@ function SendersSection() {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {senders.length === 0 ? (
-                  <tr><td colSpan={4} className="px-5 py-10 text-center text-sm text-gray-400">{loading ? 'Loading…' : 'No workspaces match.'}</td></tr>
+                  <tr><td colSpan={4} className="px-5 py-10 text-center text-sm text-gray-400">{loading ? 'Loading…' : (flaggedOnly ? 'No senders are flagged for review.' : 'No workspaces match.')}</td></tr>
                 ) : (
-                  senders.map((ws) => <SenderRow key={ws.id} ws={ws} onSaved={onSaved} />)
+                  senders.map((ws) => <SenderRow key={ws.id} ws={ws} onSaved={onSaved} onReviewed={onReviewed} />)
                 )}
               </tbody>
             </table>
