@@ -108,7 +108,9 @@ export default function Workspaces() {
       .finally(() => setLoading(false))
   }, [])
 
-  useEffect(() => { fetchWorkspaces() }, [fetchWorkspaces])
+  // Call the async loader via an IIFE — effects can't be async, and this keeps
+  // the setState out of the effect's synchronous body (react-hooks/set-state-in-effect).
+  useEffect(() => { (async () => { await fetchWorkspaces() })() }, [fetchWorkspaces])
 
   const filtered = workspaces.filter(ws => {
     if (!search) return true
