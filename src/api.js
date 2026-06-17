@@ -34,7 +34,9 @@ function qs(params = {}) {
 
 export const api = {
   stats: () => request('/stats'),
-  workspaces: () => request('/workspaces'),
+  // GET /workspaces returns { workspaces, total }; unwrap to the array so
+  // callers (Dashboard, Workspaces) get the list they expect.
+  workspaces: () => request('/workspaces').then((r) => r.workspaces),
   workspace: (id) => request(`/workspaces/${id}`),
   addCredits: (id, amount, description) =>
     request(`/workspaces/${id}/credits`, {
