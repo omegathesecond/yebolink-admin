@@ -6,6 +6,7 @@ import {
   Calendar, Hash, User, Ban, Copy,
 } from 'lucide-react'
 import { api } from '../api'
+import { contentPreview } from '../utils'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -227,7 +228,7 @@ export default function WorkspaceDetail() {
             <p className="text-indigo-200 text-sm">{ws.email || '—'}</p>
             <div className="flex items-center gap-1.5 mt-2">
               <CreditCard className="w-4 h-4 text-indigo-300" />
-              <span className="text-2xl font-bold">{ws.credits != null ? ws.credits.toLocaleString() : '—'}</span>
+              <span className="text-2xl font-bold">{ws.credits_balance != null ? Number(ws.credits_balance).toLocaleString() : '—'}</span>
               <span className="text-indigo-300 text-sm ml-1">credits</span>
             </div>
           </div>
@@ -342,7 +343,7 @@ function OverviewTab({ ws, messages, transactions, apiKeys }) {
         </div>
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <h3 className="text-sm font-semibold text-gray-700 mb-1">Account Details</h3>
-          <InfoRow icon={CreditCard} label="Credits Balance" value={ws.credits != null ? ws.credits.toLocaleString() : null} />
+          <InfoRow icon={CreditCard} label="Credits Balance" value={ws.credits_balance != null ? Number(ws.credits_balance).toLocaleString() : null} />
           <InfoRow icon={Calendar} label="Joined" value={fmtDate(ws.created_at)} />
           <InfoRow icon={Calendar} label="Last Updated" value={fmtDate(ws.updated_at)} />
           <InfoRow icon={LayoutDashboard} label="Plan" value={ws.plan || 'Default'} />
@@ -382,7 +383,7 @@ function MessagesTab({ messages }) {
           </thead>
           <tbody className="divide-y divide-gray-50">
             {messages.map((msg, i) => {
-              const content = msg.text || msg.subject || msg.body || ''
+              const content = contentPreview(msg.content)
               return (
                 <tr key={msg.id || i} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-5 py-3.5"><ChannelBadge channel={msg.channel} /></td>

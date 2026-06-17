@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Search, Loader2, AlertCircle, MessageSquare, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { api } from '../api'
+import { contentPreview } from '../utils'
 
 const PAGE_SIZE = 50
 
@@ -42,13 +43,6 @@ function StatusBadge({ status }) {
 function fmt(date) {
   if (!date) return '—'
   return new Date(date).toLocaleString()
-}
-
-// content is JSONB ({ text } | { subject, body } | { ... }) — pull a human string out
-function contentPreview(content) {
-  if (!content) return ''
-  if (typeof content === 'string') return content
-  return content.text || content.body || content.subject || content.message || JSON.stringify(content)
 }
 
 const EMPTY_FILTERS = { recipient: '', channel: '', status: '', from: '', to: '' }
