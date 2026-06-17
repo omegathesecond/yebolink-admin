@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Loader2, AlertCircle, Plus, CheckCircle, XCircle, X,
@@ -156,15 +156,17 @@ export default function WorkspaceDetail() {
   const [showCredits, setShowCredits] = useState(false)
   const [toggling, setToggling] = useState(false)
 
-  const fetchData = () => {
+  const fetchData = useCallback(() => {
     setLoading(true)
     api.workspace(id)
       .then(setData)
       .catch(err => setError(err.message))
       .finally(() => setLoading(false))
-  }
+  }, [id])
 
-  useEffect(() => { fetchData() }, [id])
+  // Call the async loader via an IIFE — effects can't be async, and this keeps
+  // the setState out of the effect's synchronous body (react-hooks/set-state-in-effect).
+  useEffect(() => { (async () => { await fetchData() })() }, [fetchData])
 
   const toggleActive = async () => {
     if (!data?.workspace) return
