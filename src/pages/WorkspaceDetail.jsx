@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft, Loader2, AlertCircle, Plus, CheckCircle, XCircle, X,
+  ArrowLeft, Loader2, AlertCircle, Plus, Minus, CheckCircle, XCircle, X,
   MessageSquare, CreditCard, Key, LayoutDashboard, Globe, Mail, Phone,
   Calendar, Hash, User, Ban, Copy,
 } from 'lucide-react'
@@ -141,6 +141,84 @@ function AddCreditsModal({ workspaceId, workspaceName, onClose, onSuccess }) {
   )
 }
 
+// ─── Debit / Refund Credits Modal ─────────────────────────────────────────────
+
+function DebitCreditsModal({ workspaceId, workspaceName, balance, onClose, onSuccess }) {
+  const [amount, setAmount] = useState('')
+  const [reason, setReason] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const num = parseFloat(amount)
+    if (!num || num <= 0) return setError('Enter a valid positive amount to debit.')
+    if (!reason.trim()) return setError('A reason is required.')
+    setLoading(true)
+    setError('')
+    try {
+      await api.debitCredits(workspaceId, num, reason.trim())
+      onSuccess()
+    } catch (err) {
+      setError(err.message)
+    }
+    setLoading(false)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h3 className="font-semibold text-gray-900">Debit / Refund Credits</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="px-6 py-4">
+          <p className="text-sm text-gray-500 mb-4">
+            Removing credits from <span className="font-medium text-gray-800">{workspaceName}</span>
+            {balance != null && (
+              <> — current balance <span className="font-medium text-gray-800">{balance.toLocaleString()}</span></>
+            )}
+          </p>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Amount to debit</label>
+              <input
+                type="number" min="0.01" step="0.01"
+                value={amount} onChange={e => setAmount(e.target.value)}
+                placeholder="100" autoFocus
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Reason <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text" value={reason} onChange={e => setReason(e.target.value)}
+                placeholder="Reversing erroneous top-up"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+              />
+            </div>
+            {error && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
+            <div className="flex gap-3 pt-1">
+              <button type="button" onClick={onClose}
+                className="flex-1 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                Cancel
+              </button>
+              <button type="submit" disabled={loading || !amount || !reason.trim()}
+                className="flex-1 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed">
+                {loading ? 'Debiting…' : 'Debit Credits'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
 
 const TABS = ['Overview', 'Messages', 'Transactions', 'API Keys']
@@ -155,6 +233,7 @@ export default function WorkspaceDetail() {
   const [error, setError] = useState('')
   const [tab, setTab] = useState('Overview')
   const [showCredits, setShowCredits] = useState(false)
+  const [showDebit, setShowDebit] = useState(false)
   const [toggling, setToggling] = useState(false)
 
   const fetchData = useCallback(() => {
@@ -240,6 +319,12 @@ export default function WorkspaceDetail() {
               <Plus className="w-4 h-4" /> Add Credits
             </button>
             <button
+              onClick={() => setShowDebit(true)}
+              className="flex items-center gap-1.5 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium backdrop-blur-sm transition-colors"
+            >
+              <Minus className="w-4 h-4" /> Debit / Refund
+            </button>
+            <button
               onClick={toggleActive}
               disabled={toggling}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-60 ${
@@ -290,6 +375,17 @@ export default function WorkspaceDetail() {
           workspaceName={ws.name}
           onClose={() => setShowCredits(false)}
           onSuccess={() => { setShowCredits(false); fetchData() }}
+        />
+      )}
+
+      {/* Debit / Refund Credits Modal */}
+      {showDebit && (
+        <DebitCreditsModal
+          workspaceId={id}
+          workspaceName={ws.name}
+          balance={ws.credits ?? ws.credits_balance}
+          onClose={() => setShowDebit(false)}
+          onSuccess={() => { setShowDebit(false); fetchData() }}
         />
       )}
     </div>

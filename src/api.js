@@ -43,6 +43,11 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ amount, description }),
     }),
+  debitCredits: (id, amount, reason) =>
+    request(`/workspaces/${id}/credits/debit`, {
+      method: 'POST',
+      body: JSON.stringify({ amount, reason }),
+    }),
   activate: (id) => request(`/workspaces/${id}/activate`, { method: 'POST' }),
   deactivate: (id) => request(`/workspaces/${id}/deactivate`, { method: 'POST' }),
 
