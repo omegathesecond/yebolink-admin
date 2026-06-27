@@ -91,20 +91,41 @@ function AddCreditsModal({ workspace, onClose, onSuccess }) {
 function DebitCreditsModal({ workspace, onClose, onSuccess }) {
   const [amount, setAmount] = useState('')
   const [reason, setReason] = useState('')
+  const [allowNegative, setAllowNegative] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const balance = workspace.credits ?? workspace.credits_balance
+  const num = parseFloat(amount)
+  const validAmount = Number.isFinite(num) && num > 0
+  // Live preview of where the balance lands once this debit is applied.
+  // Round to cents so binary-float artifacts (e.g. 1000.1 - 999.4 = 0.7000000000000455)
+  // don't leak into the preview the operator reads.
+  const resultingBalance =
+    balance != null && validAmount ? Math.round((balance - num) * 100) / 100 : null
+  const wouldGoNegative = resultingBalance != null && resultingBalance < 0
+  // Below-zero debits are blocked unless the operator explicitly opts in
+  // (chargebacks need to claw back more than the workspace currently holds).
+  const blockedByNegative = wouldGoNegative && !allowNegative
+
+  // Clear a stale override the moment the debit no longer overdraws, so a later
+  // edit that goes negative again must be re-confirmed rather than slipping
+  // through on a checkbox the operator can no longer see.
+  useEffect(() => {
+    if (!wouldGoNegative && allowNegative) setAllowNegative(false)
+  }, [wouldGoNegative, allowNegative])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const num = parseFloat(amount)
-    if (!num || num <= 0) return setError('Enter a valid positive amount to debit.')
+    if (!validAmount) return setError('Enter a valid positive amount to debit.')
     if (!reason.trim()) return setError('A reason is required.')
+    if (blockedByNegative) {
+      return setError('This debit would drive the balance below zero. Tick “Allow balance to go below zero” to force it.')
+    }
     setLoading(true)
     setError('')
     try {
-      await api.debitCredits(workspace.id, num, reason.trim())
+      await api.debitCredits(workspace.id, num, reason.trim(), allowNegative)
       onSuccess()
     } catch (err) {
       setError(err.message)
@@ -141,6 +162,13 @@ function DebitCreditsModal({ workspace, onClose, onSuccess }) {
                 autoFocus
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
               />
+              {resultingBalance != null && (
+                <p className={`text-xs mt-1.5 ${wouldGoNegative ? 'text-red-600' : 'text-gray-500'}`}>
+                  New balance after debit:{' '}
+                  <span className="font-semibold">{resultingBalance.toLocaleString()}</span>
+                  {wouldGoNegative && ' (negative)'}
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Reason <span className="text-red-500">*</span></label>
@@ -152,13 +180,24 @@ function DebitCreditsModal({ workspace, onClose, onSuccess }) {
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
               />
             </div>
+            {wouldGoNegative && (
+              <label className="flex items-start gap-2 text-sm text-gray-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={allowNegative}
+                  onChange={e => setAllowNegative(e.target.checked)}
+                  className="mt-0.5 accent-amber-600"
+                />
+                <span>Allow balance to go below zero <span className="text-gray-400">(chargebacks)</span></span>
+              </label>
+            )}
             {error && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
             <div className="flex gap-3 pt-1">
               <button type="button" onClick={onClose}
                 className="flex-1 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
                 Cancel
               </button>
-              <button type="submit" disabled={loading || !amount || !reason.trim()}
+              <button type="submit" disabled={loading || !amount || !reason.trim() || blockedByNegative}
                 className="flex-1 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed">
                 {loading ? 'Debiting…' : 'Debit Credits'}
               </button>
