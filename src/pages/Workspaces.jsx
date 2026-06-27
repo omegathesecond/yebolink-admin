@@ -99,11 +99,21 @@ function DebitCreditsModal({ workspace, onClose, onSuccess }) {
   const num = parseFloat(amount)
   const validAmount = Number.isFinite(num) && num > 0
   // Live preview of where the balance lands once this debit is applied.
-  const resultingBalance = balance != null && validAmount ? balance - num : null
+  // Round to cents so binary-float artifacts (e.g. 1000.1 - 999.4 = 0.7000000000000455)
+  // don't leak into the preview the operator reads.
+  const resultingBalance =
+    balance != null && validAmount ? Math.round((balance - num) * 100) / 100 : null
   const wouldGoNegative = resultingBalance != null && resultingBalance < 0
   // Below-zero debits are blocked unless the operator explicitly opts in
   // (chargebacks need to claw back more than the workspace currently holds).
   const blockedByNegative = wouldGoNegative && !allowNegative
+
+  // Clear a stale override the moment the debit no longer overdraws, so a later
+  // edit that goes negative again must be re-confirmed rather than slipping
+  // through on a checkbox the operator can no longer see.
+  useEffect(() => {
+    if (!wouldGoNegative && allowNegative) setAllowNegative(false)
+  }, [wouldGoNegative, allowNegative])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
