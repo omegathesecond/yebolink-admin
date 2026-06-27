@@ -45,9 +45,9 @@ function ChannelBadge({ channel }) {
   )
 }
 
-function TxTypeBadge({ type }) {
-  const t = (type || '').toLowerCase()
-  const isCredit = t === 'credit'
+// purchase & refund credit the workspace (green); usage & admin adjustment
+// debit it (orange). `isCredit` is derived from the signed amount by the caller.
+function TxTypeBadge({ type, isCredit }) {
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
       isCredit ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
@@ -383,7 +383,7 @@ export default function WorkspaceDetail() {
         <DebitCreditsModal
           workspaceId={id}
           workspaceName={ws.name}
-          balance={ws.credits ?? ws.credits_balance}
+          balance={ws.credits_balance != null ? Number(ws.credits_balance) : null}
           onClose={() => setShowDebit(false)}
           onSuccess={() => { setShowDebit(false); fetchData() }}
         />
@@ -534,12 +534,17 @@ function TransactionsTab({ transactions }) {
           </thead>
           <tbody className="divide-y divide-gray-50">
             {transactions.map((tx, i) => {
-              const isCredit = (tx.type || '').toLowerCase() === 'credit'
+              // Amounts are already signed by the API: purchase & refund are
+              // positive (credit), usage & adjustment negative (debit). Classify
+              // by the numeric sign and render the magnitude with a single +/-
+              // prefix so we never double up on the sign the DB already applied.
+              const amount = tx.amount != null ? Number(tx.amount) : null
+              const isCredit = amount != null && amount >= 0
               return (
                 <tr key={tx.id || i} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-5 py-3.5"><TxTypeBadge type={tx.type} /></td>
+                  <td className="px-5 py-3.5"><TxTypeBadge type={tx.type} isCredit={isCredit} /></td>
                   <td className={`px-3 py-3.5 text-right font-bold ${isCredit ? 'text-emerald-600' : 'text-orange-600'}`}>
-                    {isCredit ? '+' : '-'}{tx.amount != null ? tx.amount.toLocaleString() : '—'}
+                    {amount != null ? `${isCredit ? '+' : '-'}${Math.abs(amount).toLocaleString()}` : '—'}
                   </td>
                   <td className="px-3 py-3.5 text-gray-600 max-w-[250px] truncate">
                     {tx.description || '—'}
