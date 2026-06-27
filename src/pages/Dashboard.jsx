@@ -170,7 +170,7 @@ export default function Dashboard() {
                       <td className="py-3 font-medium text-gray-800 truncate max-w-[120px]">{ws.name}</td>
                       <td className="py-3 text-gray-500 truncate max-w-[150px]">{ws.email || '—'}</td>
                       <td className="py-3 text-right font-semibold text-indigo-600">
-                        {ws.credits != null ? ws.credits.toLocaleString() : '—'}
+                        {ws.credits_balance != null ? Number(ws.credits_balance).toLocaleString() : '—'}
                       </td>
                       <td className="py-3 text-center">
                         <StatusBadge active={ws.is_active} />
