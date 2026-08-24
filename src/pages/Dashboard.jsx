@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Users, Activity, CreditCard, MessageSquare, Loader2, AlertCircle } from 'lucide-react'
+import { useNavigate, Link } from 'react-router-dom'
+import { Users, Activity, CreditCard, MessageSquare, Loader2, AlertCircle, Clock } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,
 } from 'recharts'
 import { api } from '../api'
 
-function StatCard({ icon: Icon, label, value, color, sub }) {
+function StatCard({ icon: Icon, label, value, color, sub, to }) {
+  const Wrapper = to ? Link : 'div'
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+    <Wrapper to={to} className={`bg-white rounded-xl border border-gray-100 shadow-sm p-5 ${to ? 'block hover:border-indigo-200 hover:shadow-md transition-all' : ''}`}>
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm text-gray-500 font-medium">{label}</p>
         <div className={`p-2 rounded-lg ${color}`}>
@@ -17,7 +18,7 @@ function StatCard({ icon: Icon, label, value, color, sub }) {
       </div>
       <p className="text-2xl font-bold text-gray-900">{value}</p>
       {sub && <p className="text-xs text-gray-400 mt-1">{sub}</p>}
-    </div>
+    </Wrapper>
   )
 }
 
@@ -32,15 +33,17 @@ const CHANNEL_COLORS = { sms: '#6366f1', email: '#8b5cf6', whatsapp: '#10b981' }
 export default function Dashboard() {
   const [stats, setStats] = useState(null)
   const [workspaces, setWorkspaces] = useState([])
+  const [pendingSenders, setPendingSenders] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
   useEffect(() => {
-    Promise.all([api.stats(), api.workspaces()])
-      .then(([s, w]) => {
+    Promise.all([api.stats(), api.workspaces(), api.senders({ status: 'pending_review', limit: 1 })])
+      .then(([s, w, senders]) => {
         setStats(s)
         setWorkspaces(w)
+        setPendingSenders(senders.total)
       })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false))
@@ -82,7 +85,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard
           icon={Users}
           label="Total Workspaces"
@@ -108,6 +111,14 @@ export default function Dashboard() {
           value={stats?.messages?.today ?? '—'}
           color="bg-orange-500"
           sub={`${stats?.messages?.total?.toLocaleString() ?? '—'} total`}
+        />
+        <StatCard
+          icon={Clock}
+          label="Senders Pending Review"
+          value={pendingSenders ?? '—'}
+          color="bg-yellow-500"
+          sub="Flagged sender IDs awaiting approval"
+          to="/settings?senderStatus=pending_review"
         />
       </div>
 
