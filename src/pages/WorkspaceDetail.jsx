@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Loader2, AlertCircle, Plus, Minus, CheckCircle, XCircle, X,
   MessageSquare, CreditCard, Key, LayoutDashboard, Globe, Mail, Phone,
-  Calendar, Hash, User, Ban, Copy,
+  Calendar, Hash, User, Ban, Copy, ShieldCheck,
 } from 'lucide-react'
 import { api } from '../api'
 import { contentPreview } from '../utils'
@@ -235,6 +235,7 @@ export default function WorkspaceDetail() {
   const [showCredits, setShowCredits] = useState(false)
   const [showDebit, setShowDebit] = useState(false)
   const [toggling, setToggling] = useState(false)
+  const [verifyingEmail, setVerifyingEmail] = useState(false)
 
   const fetchData = useCallback(() => {
     setLoading(true)
@@ -262,6 +263,18 @@ export default function WorkspaceDetail() {
       alert(err.message)
     }
     setToggling(false)
+  }
+
+  const markEmailVerified = async () => {
+    if (!window.confirm(`Mark ${data?.workspace?.email || 'this workspace'}'s email as verified? This bypasses the verification link.`)) return
+    setVerifyingEmail(true)
+    try {
+      await api.verifyEmail(id)
+      await fetchData()
+    } catch (err) {
+      alert(err.message)
+    }
+    setVerifyingEmail(false)
   }
 
   if (loading) {
@@ -312,6 +325,15 @@ export default function WorkspaceDetail() {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
+            {!ws.email_verified && (
+              <button
+                onClick={markEmailVerified}
+                disabled={verifyingEmail}
+                className="flex items-center gap-1.5 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium backdrop-blur-sm transition-colors disabled:opacity-60"
+              >
+                {verifyingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />} Mark email verified
+              </button>
+            )}
             <button
               onClick={() => setShowCredits(true)}
               className="flex items-center gap-1.5 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium backdrop-blur-sm transition-colors"

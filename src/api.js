@@ -19,7 +19,12 @@ async function request(path, options = {}) {
     throw new Error('Unauthorized')
   }
   const data = await res.json()
-  if (!data.success) throw new Error(data.error || 'API error')
+  if (!data.success) {
+    const err = new Error(data.error || 'API error')
+    err.status = res.status
+    err.verification_unavailable = data.verification_unavailable
+    throw err
+  }
   return data.data
 }
 
@@ -50,6 +55,7 @@ export const api = {
     }),
   activate: (id) => request(`/workspaces/${id}/activate`, { method: 'POST' }),
   deactivate: (id) => request(`/workspaces/${id}/deactivate`, { method: 'POST' }),
+  verifyEmail: (id) => request(`/workspaces/${id}/verify-email`, { method: 'POST' }),
 
   // Platform-wide message log search
   messages: (params) => request(`/messages${qs(params)}`),
@@ -57,10 +63,15 @@ export const api = {
   // Providers & senders config
   providers: () => request('/providers'),
   senders: (params) => request(`/senders${qs(params)}`),
-  updateSender: (id, sms_sender_name) =>
+  updateSender: (id, sms_sender_name, directApprove = false) =>
     request(`/workspaces/${id}/sender`, {
       method: 'PATCH',
-      body: JSON.stringify({ sms_sender_name }),
+      body: JSON.stringify({ sms_sender_name, direct_approve: directApprove || undefined }),
+    }),
+  reviewSender: (id, action) =>
+    request(`/workspaces/${id}/sender/review`, {
+      method: 'PATCH',
+      body: JSON.stringify({ action }),
     }),
 
   // API key rotation (support)
