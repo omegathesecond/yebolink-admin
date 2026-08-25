@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Loader2, AlertCircle, Plus, Minus, CheckCircle, XCircle, X,
   MessageSquare, CreditCard, Key, LayoutDashboard, Globe, Mail, Phone,
-  Calendar, Hash, User, Ban, Copy, ShieldCheck,
+  Calendar, Hash, User, Ban, Copy, ShieldCheck, Clock, ShieldAlert, Pencil, Check,
 } from 'lucide-react'
 import { api } from '../api'
 import { contentPreview } from '../utils'
@@ -65,6 +65,16 @@ function fmt(date) {
 function fmtDate(date) {
   if (!date) return '—'
   return new Date(date).toLocaleDateString()
+}
+
+function ReviewStatusBadge({ status }) {
+  if (status === 'approved') {
+    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700"><CheckCircle className="w-3 h-3" /> Approved</span>
+  }
+  if (status === 'pending_review') {
+    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3" /> Pending review</span>
+  }
+  return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">None</span>
 }
 
 // ─── Add Credits Modal ────────────────────────────────────────────────────────
@@ -385,7 +395,7 @@ export default function WorkspaceDetail() {
       </div>
 
       {/* Tab Content */}
-      {tab === 'Overview' && <OverviewTab ws={ws} messages={messages} transactions={transactions} apiKeys={apiKeys} />}
+      {tab === 'Overview' && <OverviewTab ws={ws} messages={messages} transactions={transactions} apiKeys={apiKeys} workspaceId={id} onChange={fetchData} />}
       {tab === 'Messages' && <MessagesTab messages={messages} />}
       {tab === 'Transactions' && <TransactionsTab transactions={transactions} />}
       {tab === 'API Keys' && <ApiKeysTab apiKeys={apiKeys} workspaceId={id} onChange={fetchData} />}
@@ -414,6 +424,114 @@ export default function WorkspaceDetail() {
   )
 }
 
+// ─── Sender ID Card ────────────────────────────────────────────────────────────
+
+function SenderIdCard({ ws, workspaceId, onChange }) {
+  const [editing, setEditing] = useState(false)
+  const [value, setValue] = useState(ws.sms_sender_name || '')
+  const [saving, setSaving] = useState(false)
+  const [reviewing, setReviewing] = useState(false)
+  const [error, setError] = useState('')
+  const [verificationUnavailable, setVerificationUnavailable] = useState(false)
+
+  const save = async (directApprove = false) => {
+    setSaving(true)
+    setError('')
+    setVerificationUnavailable(false)
+    try {
+      await api.updateSender(workspaceId, value.trim(), directApprove)
+      await onChange()
+      setEditing(false)
+    } catch (err) {
+      setError(err.message)
+      setVerificationUnavailable(err.status === 503 && !!err.verification_unavailable)
+    }
+    setSaving(false)
+  }
+
+  const cancel = () => {
+    setValue(ws.sms_sender_name || '')
+    setError('')
+    setVerificationUnavailable(false)
+    setEditing(false)
+  }
+
+  const review = async (action) => {
+    setReviewing(true)
+    setError('')
+    try {
+      await api.reviewSender(workspaceId, action)
+      await onChange()
+    } catch (err) {
+      setError(err.message)
+    }
+    setReviewing(false)
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+          <MessageSquare className="w-4 h-4 text-indigo-500" /> SMS Sender ID
+        </h3>
+        <ReviewStatusBadge status={ws.sms_sender_name_status} />
+      </div>
+
+      {editing ? (
+        <div>
+          <div className="flex items-center gap-1.5">
+            <input
+              autoFocus value={value} maxLength={11}
+              onChange={(e) => setValue(e.target.value)}
+              placeholder="Sender ID"
+              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <button onClick={() => save(false)} disabled={saving}
+              className="p-2 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 disabled:opacity-50">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+            </button>
+            <button onClick={cancel} disabled={saving}
+              className="p-2 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-50">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <p className="text-xs text-gray-400 mt-1.5">Blank = use Twilio number. Max 11 alphanumeric.</p>
+          {error && <p className="text-xs text-red-600 mt-1.5">{error}</p>}
+          {verificationUnavailable && (
+            <button onClick={() => save(true)} disabled={saving}
+              className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 px-2.5 py-1.5 rounded-lg disabled:opacity-50">
+              <ShieldAlert className="w-3.5 h-3.5" /> AI verification unavailable — approve anyway
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="flex items-center justify-between gap-2">
+          {ws.sms_sender_name
+            ? <code className="text-sm bg-gray-100 text-gray-700 px-2.5 py-1.5 rounded font-mono">{ws.sms_sender_name}</code>
+            : <span className="text-sm text-gray-400 italic">Falls back to Twilio number</span>}
+          <button onClick={() => setEditing(true)} className="p-1.5 text-gray-400 hover:text-indigo-600 transition-colors flex-shrink-0">
+            <Pencil className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {ws.sms_sender_name_status === 'pending_review' && !editing && (
+        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-50">
+          <button onClick={() => review('approve')} disabled={reviewing}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-100 text-emerald-700 hover:bg-emerald-200 disabled:opacity-50">
+            {reviewing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />} Approve
+          </button>
+          <button onClick={() => review('reject')} disabled={reviewing}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-100 text-red-600 hover:bg-red-200 disabled:opacity-50">
+            {reviewing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <X className="w-3.5 h-3.5" />} Reject
+          </button>
+          {error && <p className="text-xs text-red-600">{error}</p>}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Overview Tab ─────────────────────────────────────────────────────────────
 
 function InfoRow({ icon: Icon, label, value }) {
@@ -430,7 +548,7 @@ function InfoRow({ icon: Icon, label, value }) {
   )
 }
 
-function OverviewTab({ ws, messages, transactions, apiKeys }) {
+function OverviewTab({ ws, messages, transactions, apiKeys, workspaceId, onChange }) {
   return (
     <div className="space-y-5">
       {/* Stat Cards */}
@@ -467,6 +585,8 @@ function OverviewTab({ ws, messages, transactions, apiKeys }) {
           <InfoRow icon={LayoutDashboard} label="Plan" value={ws.plan || 'Default'} />
         </div>
       </div>
+
+      <SenderIdCard ws={ws} workspaceId={workspaceId} onChange={onChange} />
     </div>
   )
 }
