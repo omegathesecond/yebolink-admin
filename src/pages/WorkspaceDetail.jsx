@@ -378,12 +378,12 @@ export default function WorkspaceDetail() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-rule">
+      <div className="flex max-w-full overflow-x-auto border-b border-rule">
         {TABS.map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-5 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
+            className={`shrink-0 whitespace-nowrap px-5 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
               tab === t
                 ? 'border-brand/30 text-brick'
                 : 'border-transparent text-mute hover:text-ink'
@@ -554,15 +554,15 @@ function OverviewTab({ ws, messages, transactions, apiKeys, workspaceId, onChang
       {/* Stat Cards */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white rounded-xl border border-rule shadow-sm p-4 text-center">
-          <p className="text-xs text-mute uppercase tracking-wide font-medium">Messages</p>
+          <p className="text-[10px] sm:text-xs text-mute uppercase tracking-wide font-medium">Messages</p>
           <p className="text-2xl font-bold text-brick mt-1">{messages.length}</p>
         </div>
         <div className="bg-white rounded-xl border border-rule shadow-sm p-4 text-center">
-          <p className="text-xs text-mute uppercase tracking-wide font-medium">Transactions</p>
+          <p className="text-[10px] sm:text-xs text-mute uppercase tracking-wide font-medium">Transactions</p>
           <p className="text-2xl font-bold text-brick mt-1">{transactions.length}</p>
         </div>
         <div className="bg-white rounded-xl border border-rule shadow-sm p-4 text-center">
-          <p className="text-xs text-mute uppercase tracking-wide font-medium">API Keys</p>
+          <p className="text-[10px] sm:text-xs text-mute uppercase tracking-wide font-medium">API Keys</p>
           <p className="text-2xl font-bold text-ink mt-1">{apiKeys.length}</p>
         </div>
       </div>

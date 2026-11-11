@@ -290,19 +290,19 @@ function SendersSection() {
             The alphanumeric sender shown on a workspace's SMS. Blank falls back to the Twilio number.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           <select
             value={status} onChange={(e) => setStatus(e.target.value)}
             className="px-3 py-2 border border-rule rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink bg-white"
           >
             {STATUS_FILTERS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
           </select>
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <Search className="w-4 h-4 text-mute absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               value={query} onChange={(e) => setQuery(e.target.value)}
               placeholder="Filter workspaces…"
-              className="pl-9 pr-3 py-2 border border-rule rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink w-56"
+              className="pl-9 pr-3 py-2 border border-rule rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink w-full sm:w-56"
             />
           </div>
         </div>
