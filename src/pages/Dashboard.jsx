@@ -9,15 +9,15 @@ import { api } from '../api'
 function StatCard({ icon: Icon, label, value, color, sub, to }) {
   const Wrapper = to ? Link : 'div'
   return (
-    <Wrapper to={to} className={`bg-white rounded-xl border border-gray-100 shadow-sm p-5 ${to ? 'block hover:border-indigo-200 hover:shadow-md transition-all' : ''}`}>
+    <Wrapper to={to} className={`bg-white rounded-xl border border-rule shadow-sm p-5 ${to ? 'block hover:border-brand/30 hover:border-ink/30 transition-all' : ''}`}>
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm text-gray-500 font-medium">{label}</p>
+        <p className="text-sm text-mute font-medium">{label}</p>
         <div className={`p-2 rounded-lg ${color}`}>
-          <Icon className="w-4 h-4 text-white" />
+          <Icon className="w-4 h-4 text-ink" />
         </div>
       </div>
-      <p className="text-2xl font-bold text-gray-900">{value}</p>
-      {sub && <p className="text-xs text-gray-400 mt-1">{sub}</p>}
+      <p className="font-display text-3xl font-medium tracking-tight text-ink">{value}</p>
+      {sub && <p className="text-xs text-mute mt-1">{sub}</p>}
     </Wrapper>
   )
 }
@@ -28,7 +28,7 @@ function StatusBadge({ active }) {
     : <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-600">Inactive</span>
 }
 
-const CHANNEL_COLORS = { sms: '#6366f1', email: '#8b5cf6', whatsapp: '#10b981' }
+const CHANNEL_COLORS = { sms: '#ff6b00', email: '#1a1814', whatsapp: '#15803d' }
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null)
@@ -52,7 +52,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-brick" />
       </div>
     )
   }
@@ -80,8 +80,8 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-0.5">YeboLink platform overview</p>
+        <p className="eyebrow mb-3">Your platform, at a glance</p><h1>Keep every connection moving.</h1>
+        <p className="text-sm text-mute mt-0.5">Workspaces, message activity, and the requests that need your attention.</p>
       </div>
 
       {/* Stat Cards */}
@@ -90,7 +90,7 @@ export default function Dashboard() {
           icon={Users}
           label="Total Workspaces"
           value={stats?.workspaces?.total ?? '—'}
-          color="bg-indigo-500"
+          color="bg-brand"
         />
         <StatCard
           icon={Activity}
@@ -102,7 +102,7 @@ export default function Dashboard() {
           icon={CreditCard}
           label="Credits in System"
           value={stats?.workspaces?.credits_held != null ? stats.workspaces.credits_held.toLocaleString() : '—'}
-          color="bg-purple-500"
+          color="bg-brand"
           sub="Total credits held across all workspaces"
         />
         <StatCard
@@ -125,19 +125,19 @@ export default function Dashboard() {
       {/* Chart + Recent Workspaces */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Bar Chart */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 lg:col-span-1">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">Messages by Channel</h2>
+        <div className="bg-white rounded-xl border border-rule shadow-sm p-5 lg:col-span-1">
+          <h2 className="text-sm font-semibold text-ink mb-4">Messages by Channel</h2>
           {channelData.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-40 text-gray-400">
+            <div className="flex flex-col items-center justify-center h-40 text-mute">
               <MessageSquare className="w-8 h-8 mb-2 opacity-40" />
               <p className="text-sm">No channel data</p>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={channelData} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+              <BarChart data={channelData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#eae5dc" />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#78716c' }} axisLine={false} tickLine={false} />
+                <YAxis width={44} tickFormatter={value => Intl.NumberFormat('en', { notation: 'compact' }).format(value)} tick={{ fontSize: 11, fill: '#78716c' }} axisLine={false} tickLine={false} />
                 <Tooltip
                   contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12 }}
                   cursor={{ fill: '#f3f4f6' }}
@@ -153,10 +153,10 @@ export default function Dashboard() {
         </div>
 
         {/* Recent Workspaces Table */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 lg:col-span-2">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">Recent Workspaces</h2>
+        <div className="bg-white rounded-xl border border-rule shadow-sm p-5 lg:col-span-2">
+          <h2 className="text-sm font-semibold text-ink mb-4">Recent Workspaces</h2>
           {recent.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-40 text-gray-400">
+            <div className="flex flex-col items-center justify-center h-40 text-mute">
               <Users className="w-8 h-8 mb-2 opacity-40" />
               <p className="text-sm">No workspaces yet</p>
             </div>
@@ -164,23 +164,23 @@ export default function Dashboard() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider pb-3">Name</th>
-                    <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider pb-3">Email</th>
-                    <th className="text-right text-xs font-semibold text-gray-400 uppercase tracking-wider pb-3">Credits</th>
-                    <th className="text-center text-xs font-semibold text-gray-400 uppercase tracking-wider pb-3">Status</th>
+                  <tr className="border-b border-rule">
+                    <th className="text-left text-xs font-semibold text-mute uppercase tracking-wider pb-3">Name</th>
+                    <th className="text-left text-xs font-semibold text-mute uppercase tracking-wider pb-3">Email</th>
+                    <th className="text-right text-xs font-semibold text-mute uppercase tracking-wider pb-3">Credits</th>
+                    <th className="text-center text-xs font-semibold text-mute uppercase tracking-wider pb-3">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-shade">
                   {recent.map(ws => (
                     <tr
                       key={ws.id}
-                      className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="hover:bg-cream cursor-pointer transition-colors"
                       onClick={() => navigate(`/workspaces/${ws.id}`)}
                     >
-                      <td className="py-3 font-medium text-gray-800 truncate max-w-[120px]">{ws.name}</td>
-                      <td className="py-3 text-gray-500 truncate max-w-[150px]">{ws.email || '—'}</td>
-                      <td className="py-3 text-right font-semibold text-indigo-600">
+                      <td className="py-3 font-medium text-ink truncate max-w-[120px]">{ws.name}</td>
+                      <td className="py-3 text-mute truncate max-w-[150px]">{ws.email || '—'}</td>
+                      <td className="py-3 text-right font-semibold text-brick">
                         {ws.credits_balance != null ? Number(ws.credits_balance).toLocaleString() : '—'}
                       </td>
                       <td className="py-3 text-center">

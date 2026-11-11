@@ -25,7 +25,7 @@ function MsgStatusBadge({ status }) {
     queued: 'bg-yellow-100 text-yellow-700',
   }
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${map[s] || 'bg-gray-100 text-gray-600'}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${map[s] || 'bg-surface text-mute'}`}>
       {status || '—'}
     </span>
   )
@@ -34,12 +34,12 @@ function MsgStatusBadge({ status }) {
 function ChannelBadge({ channel }) {
   const c = (channel || '').toLowerCase()
   const map = {
-    sms: 'bg-blue-100 text-blue-700',
-    email: 'bg-purple-100 text-purple-700',
+    sms: 'bg-brand/10 text-brick',
+    email: 'bg-brand/10 text-brick',
     whatsapp: 'bg-green-100 text-green-700',
   }
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${map[c] || 'bg-gray-100 text-gray-600'}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${map[c] || 'bg-surface text-mute'}`}>
       {channel || '—'}
     </span>
   )
@@ -74,7 +74,7 @@ function ReviewStatusBadge({ status }) {
   if (status === 'pending_review') {
     return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3" /> Pending review</span>
   }
-  return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">None</span>
+  return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-surface text-mute">None</span>
 }
 
 // ─── Add Credits Modal ────────────────────────────────────────────────────────
@@ -103,44 +103,44 @@ function AddCreditsModal({ workspaceId, workspaceName, onClose, onSuccess }) {
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-900">Add Credits</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-rule">
+          <h3 className="font-semibold text-ink">Add Credits</h3>
+          <button onClick={onClose} className="text-mute hover:text-mute transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
         <div className="px-6 py-4">
-          <p className="text-sm text-gray-500 mb-4">
-            Adding credits to <span className="font-medium text-gray-800">{workspaceName}</span>
+          <p className="text-sm text-mute mb-4">
+            Adding credits to <span className="font-medium text-ink">{workspaceName}</span>
           </p>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+              <label className="block text-sm font-medium text-ink mb-1">Amount</label>
               <input
                 type="number" min="0.01" step="0.01"
                 value={amount} onChange={e => setAmount(e.target.value)}
                 placeholder="100" autoFocus
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-3 py-2.5 border border-rule rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description <span className="text-gray-400">(optional)</span>
+              <label className="block text-sm font-medium text-ink mb-1">
+                Description <span className="text-mute">(optional)</span>
               </label>
               <input
                 type="text" value={description} onChange={e => setDescription(e.target.value)}
                 placeholder="Manual top-up"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-3 py-2.5 border border-rule rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
               />
             </div>
             {error && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
             <div className="flex gap-3 pt-1">
               <button type="button" onClick={onClose}
-                className="flex-1 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                className="flex-1 py-2.5 border border-rule rounded-lg text-sm font-medium text-mute hover:bg-cream transition-colors">
                 Cancel
               </button>
               <button type="submit" disabled={loading || !amount}
-                className="flex-1 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed">
+                className="flex-1 py-2.5 bg-brand text-ink rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed">
                 {loading ? 'Adding…' : 'Add Credits'}
               </button>
             </div>
@@ -178,47 +178,47 @@ function DebitCreditsModal({ workspaceId, workspaceName, balance, onClose, onSuc
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-900">Debit / Refund Credits</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-rule">
+          <h3 className="font-semibold text-ink">Debit / Refund Credits</h3>
+          <button onClick={onClose} className="text-mute hover:text-mute transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
         <div className="px-6 py-4">
-          <p className="text-sm text-gray-500 mb-4">
-            Removing credits from <span className="font-medium text-gray-800">{workspaceName}</span>
+          <p className="text-sm text-mute mb-4">
+            Removing credits from <span className="font-medium text-ink">{workspaceName}</span>
             {balance != null && (
-              <> — current balance <span className="font-medium text-gray-800">{balance.toLocaleString()}</span></>
+              <> — current balance <span className="font-medium text-ink">{balance.toLocaleString()}</span></>
             )}
           </p>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Amount to debit</label>
+              <label className="block text-sm font-medium text-ink mb-1">Amount to debit</label>
               <input
                 type="number" min="0.01" step="0.01"
                 value={amount} onChange={e => setAmount(e.target.value)}
                 placeholder="100" autoFocus
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                className="w-full px-3 py-2.5 border border-rule rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-ink mb-1">
                 Reason <span className="text-red-500">*</span>
               </label>
               <input
                 type="text" value={reason} onChange={e => setReason(e.target.value)}
                 placeholder="Reversing erroneous top-up"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                className="w-full px-3 py-2.5 border border-rule rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
               />
             </div>
             {error && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
             <div className="flex gap-3 pt-1">
               <button type="button" onClick={onClose}
-                className="flex-1 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                className="flex-1 py-2.5 border border-rule rounded-lg text-sm font-medium text-mute hover:bg-cream transition-colors">
                 Cancel
               </button>
               <button type="submit" disabled={loading || !amount || !reason.trim()}
-                className="flex-1 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed">
+                className="flex-1 py-2.5 bg-amber-200 text-ink rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed">
                 {loading ? 'Debiting…' : 'Debit Credits'}
               </button>
             </div>
@@ -290,7 +290,7 @@ export default function WorkspaceDetail() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-brick" />
       </div>
     )
   }
@@ -314,45 +314,45 @@ export default function WorkspaceDetail() {
       {/* Back */}
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors"
+        className="flex items-center gap-1.5 text-sm text-mute hover:text-ink transition-colors"
       >
         <ArrowLeft className="w-4 h-4" /> Back to Workspaces
       </button>
 
       {/* Header Card */}
-      <div className="rounded-2xl p-6 text-white" style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}>
+      <div className="rounded-xl border border-rule bg-surface p-6 text-ink">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
               <h1 className="text-xl font-bold">{ws.name || 'Workspace'}</h1>
               <StatusBadge active={ws.is_active} />
             </div>
-            <p className="text-indigo-200 text-sm">{ws.email || '—'}</p>
+            <p className="text-brick text-sm">{ws.email || '—'}</p>
             <div className="flex items-center gap-1.5 mt-2">
-              <CreditCard className="w-4 h-4 text-indigo-300" />
+              <CreditCard className="w-4 h-4 text-brick" />
               <span className="text-2xl font-bold">{ws.credits_balance != null ? Number(ws.credits_balance).toLocaleString() : '—'}</span>
-              <span className="text-indigo-300 text-sm ml-1">credits</span>
+              <span className="text-brick text-sm ml-1">credits</span>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex flex-wrap items-center gap-2">
             {!ws.email_verified && (
               <button
                 onClick={markEmailVerified}
                 disabled={verifyingEmail}
-                className="flex items-center gap-1.5 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium backdrop-blur-sm transition-colors disabled:opacity-60"
+                className="flex items-center gap-1.5 px-4 py-2 border border-rule bg-white hover:bg-cream rounded-lg text-sm font-medium backdrop-blur-sm transition-colors disabled:opacity-60"
               >
                 {verifyingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />} Mark email verified
               </button>
             )}
             <button
               onClick={() => setShowCredits(true)}
-              className="flex items-center gap-1.5 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium backdrop-blur-sm transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2 border border-rule bg-white hover:bg-cream rounded-lg text-sm font-medium backdrop-blur-sm transition-colors"
             >
               <Plus className="w-4 h-4" /> Add Credits
             </button>
             <button
               onClick={() => setShowDebit(true)}
-              className="flex items-center gap-1.5 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium backdrop-blur-sm transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2 border border-rule bg-white hover:bg-cream rounded-lg text-sm font-medium backdrop-blur-sm transition-colors"
             >
               <Minus className="w-4 h-4" /> Debit / Refund
             </button>
@@ -361,8 +361,8 @@ export default function WorkspaceDetail() {
               disabled={toggling}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-60 ${
                 ws.is_active
-                  ? 'bg-red-500/30 hover:bg-red-500/50 text-white'
-                  : 'bg-emerald-500/30 hover:bg-emerald-500/50 text-white'
+                  ? 'bg-red-500/30 hover:bg-red-500/50 text-ink'
+                  : 'bg-emerald-500/30 hover:bg-emerald-500/50 text-ink'
               }`}
             >
               {toggling ? (
@@ -378,15 +378,15 @@ export default function WorkspaceDetail() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-200">
+      <div className="flex max-w-full overflow-x-auto border-b border-rule">
         {TABS.map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-5 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
+            className={`shrink-0 whitespace-nowrap px-5 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
               tab === t
-                ? 'border-indigo-500 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-brand/30 text-brick'
+                : 'border-transparent text-mute hover:text-ink'
             }`}
           >
             {t}
@@ -469,10 +469,10 @@ function SenderIdCard({ ws, workspaceId, onChange }) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+    <div className="bg-white rounded-xl border border-rule shadow-sm p-5">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-indigo-500" /> SMS Sender ID
+        <h3 className="text-sm font-semibold text-ink flex items-center gap-2">
+          <MessageSquare className="w-4 h-4 text-brick" /> SMS Sender ID
         </h3>
         <ReviewStatusBadge status={ws.sms_sender_name_status} />
       </div>
@@ -484,18 +484,18 @@ function SenderIdCard({ ws, workspaceId, onChange }) {
               autoFocus value={value} maxLength={11}
               onChange={(e) => setValue(e.target.value)}
               placeholder="Sender ID"
-              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="flex-1 px-3 py-2 border border-rule rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ink"
             />
             <button onClick={() => save(false)} disabled={saving}
               className="p-2 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 disabled:opacity-50">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
             </button>
             <button onClick={cancel} disabled={saving}
-              className="p-2 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-50">
+              className="p-2 rounded-lg bg-surface text-mute hover:bg-gray-200 disabled:opacity-50">
               <X className="w-4 h-4" />
             </button>
           </div>
-          <p className="text-xs text-gray-400 mt-1.5">Blank = use Twilio number. Max 11 alphanumeric.</p>
+          <p className="text-xs text-mute mt-1.5">Blank = use Twilio number. Max 11 alphanumeric.</p>
           {error && <p className="text-xs text-red-600 mt-1.5">{error}</p>}
           {verificationUnavailable && (
             <button onClick={() => save(true)} disabled={saving}
@@ -507,9 +507,9 @@ function SenderIdCard({ ws, workspaceId, onChange }) {
       ) : (
         <div className="flex items-center justify-between gap-2">
           {ws.sms_sender_name
-            ? <code className="text-sm bg-gray-100 text-gray-700 px-2.5 py-1.5 rounded font-mono">{ws.sms_sender_name}</code>
-            : <span className="text-sm text-gray-400 italic">Falls back to Twilio number</span>}
-          <button onClick={() => setEditing(true)} className="p-1.5 text-gray-400 hover:text-indigo-600 transition-colors flex-shrink-0">
+            ? <code className="text-sm bg-surface text-ink px-2.5 py-1.5 rounded font-mono">{ws.sms_sender_name}</code>
+            : <span className="text-sm text-mute italic">Falls back to Twilio number</span>}
+          <button onClick={() => setEditing(true)} className="p-1.5 text-mute hover:text-brick transition-colors flex-shrink-0">
             <Pencil className="w-4 h-4" />
           </button>
         </div>
@@ -537,12 +537,12 @@ function SenderIdCard({ ws, workspaceId, onChange }) {
 function InfoRow({ icon: Icon, label, value }) {
   return (
     <div className="flex items-start gap-3 py-3 border-b border-gray-50 last:border-0">
-      <div className="p-1.5 bg-gray-100 rounded-lg flex-shrink-0 mt-0.5">
-        <Icon className="w-3.5 h-3.5 text-gray-500" />
+      <div className="p-1.5 bg-surface rounded-lg flex-shrink-0 mt-0.5">
+        <Icon className="w-3.5 h-3.5 text-mute" />
       </div>
       <div className="min-w-0">
-        <p className="text-xs text-gray-400 font-medium">{label}</p>
-        <p className="text-sm text-gray-800 font-medium mt-0.5 break-all">{value || '—'}</p>
+        <p className="text-xs text-mute font-medium">{label}</p>
+        <p className="text-sm text-ink font-medium mt-0.5 break-all">{value || '—'}</p>
       </div>
     </div>
   )
@@ -553,32 +553,32 @@ function OverviewTab({ ws, messages, transactions, apiKeys, workspaceId, onChang
     <div className="space-y-5">
       {/* Stat Cards */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 text-center">
-          <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Messages</p>
-          <p className="text-2xl font-bold text-indigo-600 mt-1">{messages.length}</p>
+        <div className="bg-white rounded-xl border border-rule shadow-sm p-4 text-center">
+          <p className="text-[10px] sm:text-xs text-mute uppercase tracking-wide font-medium">Messages</p>
+          <p className="text-2xl font-bold text-brick mt-1">{messages.length}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 text-center">
-          <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Transactions</p>
-          <p className="text-2xl font-bold text-purple-600 mt-1">{transactions.length}</p>
+        <div className="bg-white rounded-xl border border-rule shadow-sm p-4 text-center">
+          <p className="text-[10px] sm:text-xs text-mute uppercase tracking-wide font-medium">Transactions</p>
+          <p className="text-2xl font-bold text-brick mt-1">{transactions.length}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 text-center">
-          <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">API Keys</p>
-          <p className="text-2xl font-bold text-gray-700 mt-1">{apiKeys.length}</p>
+        <div className="bg-white rounded-xl border border-rule shadow-sm p-4 text-center">
+          <p className="text-[10px] sm:text-xs text-mute uppercase tracking-wide font-medium">API Keys</p>
+          <p className="text-2xl font-bold text-ink mt-1">{apiKeys.length}</p>
         </div>
       </div>
 
       {/* Info Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-          <h3 className="text-sm font-semibold text-gray-700 mb-1">Workspace Info</h3>
+        <div className="bg-white rounded-xl border border-rule shadow-sm p-5">
+          <h3 className="text-sm font-semibold text-ink mb-1">Workspace Info</h3>
           <InfoRow icon={Hash} label="Workspace ID" value={ws.id} />
           <InfoRow icon={User} label="Name" value={ws.name} />
           <InfoRow icon={Mail} label="Email" value={ws.email} />
           <InfoRow icon={Globe} label="Country" value={ws.country} />
           <InfoRow icon={Phone} label="Phone" value={ws.phone} />
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-          <h3 className="text-sm font-semibold text-gray-700 mb-1">Account Details</h3>
+        <div className="bg-white rounded-xl border border-rule shadow-sm p-5">
+          <h3 className="text-sm font-semibold text-ink mb-1">Account Details</h3>
           <InfoRow icon={CreditCard} label="Credits Balance" value={ws.credits_balance != null ? Number(ws.credits_balance).toLocaleString() : null} />
           <InfoRow icon={Calendar} label="Joined" value={fmtDate(ws.created_at)} />
           <InfoRow icon={Calendar} label="Last Updated" value={fmtDate(ws.updated_at)} />
@@ -596,8 +596,8 @@ function OverviewTab({ ws, messages, transactions, apiKeys, workspaceId, onChang
 function MessagesTab({ messages }) {
   if (messages.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-        <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+      <div className="bg-white rounded-xl border border-rule shadow-sm">
+        <div className="flex flex-col items-center justify-center py-16 text-mute">
           <MessageSquare className="w-10 h-10 mb-3 opacity-40" />
           <p className="text-sm font-medium">No messages yet</p>
         </div>
@@ -606,38 +606,38 @@ function MessagesTab({ messages }) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-xl border border-rule shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100 bg-gray-50/50">
-              <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-5 py-3">Channel</th>
-              <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">Recipient</th>
-              <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">Content</th>
-              <th className="text-center text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">Status</th>
-              <th className="text-right text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">Credits</th>
-              <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-5 py-3">Date</th>
+            <tr className="border-b border-rule bg-cream/50">
+              <th className="text-left text-xs font-semibold text-mute uppercase tracking-wider px-5 py-3">Channel</th>
+              <th className="text-left text-xs font-semibold text-mute uppercase tracking-wider px-3 py-3">Recipient</th>
+              <th className="text-left text-xs font-semibold text-mute uppercase tracking-wider px-3 py-3">Content</th>
+              <th className="text-center text-xs font-semibold text-mute uppercase tracking-wider px-3 py-3">Status</th>
+              <th className="text-right text-xs font-semibold text-mute uppercase tracking-wider px-3 py-3">Credits</th>
+              <th className="text-left text-xs font-semibold text-mute uppercase tracking-wider px-5 py-3">Date</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-shade">
             {messages.map((msg, i) => {
               const content = contentPreview(msg.content)
               return (
-                <tr key={msg.id || i} className="hover:bg-gray-50/50 transition-colors">
+                <tr key={msg.id || i} className="hover:bg-cream/50 transition-colors">
                   <td className="px-5 py-3.5"><ChannelBadge channel={msg.channel} /></td>
-                  <td className="px-3 py-3.5 text-gray-600 font-mono text-xs max-w-[120px] truncate">
+                  <td className="px-3 py-3.5 text-mute font-mono text-xs max-w-[120px] truncate">
                     {msg.recipient || msg.to || '—'}
                   </td>
-                  <td className="px-3 py-3.5 text-gray-600 max-w-[200px]">
+                  <td className="px-3 py-3.5 text-mute max-w-[200px]">
                     <span className="truncate block" title={content}>
                       {content ? content.slice(0, 60) + (content.length > 60 ? '…' : '') : '—'}
                     </span>
                   </td>
                   <td className="px-3 py-3.5 text-center"><MsgStatusBadge status={msg.status} /></td>
-                  <td className="px-3 py-3.5 text-right font-medium text-gray-700">
+                  <td className="px-3 py-3.5 text-right font-medium text-ink">
                     {msg.credits_used != null ? msg.credits_used : '—'}
                   </td>
-                  <td className="px-5 py-3.5 text-gray-500 text-xs whitespace-nowrap">{fmt(msg.created_at)}</td>
+                  <td className="px-5 py-3.5 text-mute text-xs whitespace-nowrap">{fmt(msg.created_at)}</td>
                 </tr>
               )
             })}
@@ -653,8 +653,8 @@ function MessagesTab({ messages }) {
 function TransactionsTab({ transactions }) {
   if (transactions.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-        <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+      <div className="bg-white rounded-xl border border-rule shadow-sm">
+        <div className="flex flex-col items-center justify-center py-16 text-mute">
           <CreditCard className="w-10 h-10 mb-3 opacity-40" />
           <p className="text-sm font-medium">No transactions yet</p>
         </div>
@@ -663,18 +663,18 @@ function TransactionsTab({ transactions }) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-xl border border-rule shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100 bg-gray-50/50">
-              <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-5 py-3">Type</th>
-              <th className="text-right text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">Amount</th>
-              <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">Description</th>
-              <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-5 py-3">Date</th>
+            <tr className="border-b border-rule bg-cream/50">
+              <th className="text-left text-xs font-semibold text-mute uppercase tracking-wider px-5 py-3">Type</th>
+              <th className="text-right text-xs font-semibold text-mute uppercase tracking-wider px-3 py-3">Amount</th>
+              <th className="text-left text-xs font-semibold text-mute uppercase tracking-wider px-3 py-3">Description</th>
+              <th className="text-left text-xs font-semibold text-mute uppercase tracking-wider px-5 py-3">Date</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-shade">
             {transactions.map((tx, i) => {
               // Amounts are already signed by the API: purchase & refund are
               // positive (credit), usage & adjustment negative (debit). Classify
@@ -683,15 +683,15 @@ function TransactionsTab({ transactions }) {
               const amount = tx.amount != null ? Number(tx.amount) : null
               const isCredit = amount != null && amount >= 0
               return (
-                <tr key={tx.id || i} className="hover:bg-gray-50/50 transition-colors">
+                <tr key={tx.id || i} className="hover:bg-cream/50 transition-colors">
                   <td className="px-5 py-3.5"><TxTypeBadge type={tx.type} isCredit={isCredit} /></td>
                   <td className={`px-3 py-3.5 text-right font-bold ${isCredit ? 'text-emerald-600' : 'text-orange-600'}`}>
                     {amount != null ? `${isCredit ? '+' : '-'}${Math.abs(amount).toLocaleString()}` : '—'}
                   </td>
-                  <td className="px-3 py-3.5 text-gray-600 max-w-[250px] truncate">
+                  <td className="px-3 py-3.5 text-mute max-w-[250px] truncate">
                     {tx.description || '—'}
                   </td>
-                  <td className="px-5 py-3.5 text-gray-500 text-xs whitespace-nowrap">{fmt(tx.created_at)}</td>
+                  <td className="px-5 py-3.5 text-mute text-xs whitespace-nowrap">{fmt(tx.created_at)}</td>
                 </tr>
               )
             })}
@@ -726,12 +726,12 @@ function ApiKeysTab({ apiKeys, workspaceId, onChange }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-mute">
           Rotate keys for locked-out customers. New keys are shown once.
         </p>
         <button
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+          className="flex items-center gap-1.5 px-3.5 py-2 bg-brand text-ink rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
         >
           <Plus className="w-4 h-4" /> Create API Key
         </button>
@@ -744,39 +744,39 @@ function ApiKeysTab({ apiKeys, workspaceId, onChange }) {
       )}
 
       {apiKeys.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+        <div className="bg-white rounded-xl border border-rule shadow-sm">
+          <div className="flex flex-col items-center justify-center py-16 text-mute">
             <Key className="w-10 h-10 mb-3 opacity-40" />
             <p className="text-sm font-medium">No API keys</p>
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-rule shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-5 py-3">Name</th>
-                  <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">Prefix</th>
-                  <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">Scopes</th>
-                  <th className="text-center text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">Status</th>
-                  <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">Last Used</th>
-                  <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">Created</th>
-                  <th className="text-right text-xs font-semibold text-gray-400 uppercase tracking-wider px-5 py-3">Actions</th>
+                <tr className="border-b border-rule bg-cream/50">
+                  <th className="text-left text-xs font-semibold text-mute uppercase tracking-wider px-5 py-3">Name</th>
+                  <th className="text-left text-xs font-semibold text-mute uppercase tracking-wider px-3 py-3">Prefix</th>
+                  <th className="text-left text-xs font-semibold text-mute uppercase tracking-wider px-3 py-3">Scopes</th>
+                  <th className="text-center text-xs font-semibold text-mute uppercase tracking-wider px-3 py-3">Status</th>
+                  <th className="text-left text-xs font-semibold text-mute uppercase tracking-wider px-3 py-3">Last Used</th>
+                  <th className="text-left text-xs font-semibold text-mute uppercase tracking-wider px-3 py-3">Created</th>
+                  <th className="text-right text-xs font-semibold text-mute uppercase tracking-wider px-5 py-3">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-shade">
                 {apiKeys.map((k, i) => {
                   const active = k.is_active !== false
                   return (
-                    <tr key={k.id || i} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-5 py-3.5 font-medium text-gray-800">{k.name || '—'}</td>
+                    <tr key={k.id || i} className="hover:bg-cream/50 transition-colors">
+                      <td className="px-5 py-3.5 font-medium text-ink">{k.name || '—'}</td>
                       <td className="px-3 py-3.5">
-                        <code className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-mono">
+                        <code className="text-xs bg-surface text-mute px-2 py-1 rounded font-mono">
                           {k.key_prefix || k.prefix || '—'}
                         </code>
                       </td>
-                      <td className="px-3 py-3.5 text-gray-600 text-xs">
+                      <td className="px-3 py-3.5 text-mute text-xs">
                         {Array.isArray(k.scopes) ? k.scopes.join(', ') : (k.scopes || '—')}
                       </td>
                       <td className="px-3 py-3.5 text-center">
@@ -785,8 +785,8 @@ function ApiKeysTab({ apiKeys, workspaceId, onChange }) {
                           : <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-600">Revoked</span>
                         }
                       </td>
-                      <td className="px-3 py-3.5 text-gray-500 text-xs whitespace-nowrap">{fmt(k.last_used_at)}</td>
-                      <td className="px-3 py-3.5 text-gray-500 text-xs whitespace-nowrap">{fmt(k.created_at)}</td>
+                      <td className="px-3 py-3.5 text-mute text-xs whitespace-nowrap">{fmt(k.last_used_at)}</td>
+                      <td className="px-3 py-3.5 text-mute text-xs whitespace-nowrap">{fmt(k.created_at)}</td>
                       <td className="px-5 py-3.5 text-right">
                         {active ? (
                           <button
@@ -797,7 +797,7 @@ function ApiKeysTab({ apiKeys, workspaceId, onChange }) {
                             {revokingId === k.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Ban className="w-3.5 h-3.5" />} Revoke
                           </button>
                         ) : (
-                          <span className="text-xs text-gray-400">—</span>
+                          <span className="text-xs text-mute">—</span>
                         )}
                       </td>
                     </tr>
@@ -858,26 +858,26 @@ function CreateApiKeyModal({ workspaceId, onClose, onCreated }) {
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-900">Create API Key</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors"><X className="w-5 h-5" /></button>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-rule">
+          <h3 className="font-semibold text-ink">Create API Key</h3>
+          <button onClick={onClose} className="text-mute hover:text-mute transition-colors"><X className="w-5 h-5" /></button>
         </div>
         <form onSubmit={submit} className="px-6 py-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <label className="block text-sm font-medium text-ink mb-1">Name</label>
             <input
               type="text" value={name} onChange={(e) => setName(e.target.value)} autoFocus
               placeholder="e.g. Production key (support reissue)"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 border border-rule rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Scopes</label>
+            <label className="block text-sm font-medium text-ink mb-1.5">Scopes</label>
             <div className="space-y-1.5">
               {ALL_SCOPES.map((s) => (
-                <label key={s} className="flex items-center gap-2 text-sm text-gray-600">
+                <label key={s} className="flex items-center gap-2 text-sm text-mute">
                   <input type="checkbox" checked={scopes.includes(s)} onChange={() => toggleScope(s)}
-                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                    className="rounded border-gray-300 text-brick focus:ring-ink" />
                   <code className="text-xs">{s}</code>
                 </label>
               ))}
@@ -886,9 +886,9 @@ function CreateApiKeyModal({ workspaceId, onClose, onCreated }) {
           {error && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose}
-              className="flex-1 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">Cancel</button>
+              className="flex-1 py-2.5 border border-rule rounded-lg text-sm font-medium text-mute hover:bg-cream transition-colors">Cancel</button>
             <button type="submit" disabled={loading || !name.trim() || scopes.length === 0}
-              className="flex-1 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed">
+              className="flex-1 py-2.5 bg-brand text-ink rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed">
               {loading ? 'Creating…' : 'Create Key'}
             </button>
           </div>
@@ -916,24 +916,24 @@ function NewKeyModal({ createdKey, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-900">API Key Created</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors"><X className="w-5 h-5" /></button>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-rule">
+          <h3 className="font-semibold text-ink">API Key Created</h3>
+          <button onClick={onClose} className="text-mute hover:text-mute transition-colors"><X className="w-5 h-5" /></button>
         </div>
         <div className="px-6 py-4 space-y-4">
-          <p className="text-sm text-gray-500">
-            <span className="font-medium text-gray-800">{createdKey.name}</span> — copy this key now. It will not be shown again.
+          <p className="text-sm text-mute">
+            <span className="font-medium text-ink">{createdKey.name}</span> — copy this key now. It will not be shown again.
           </p>
-          <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5">
-            <code className="text-xs font-mono text-gray-800 break-all flex-1">{createdKey.key}</code>
+          <div className="flex items-center gap-2 bg-cream border border-rule rounded-lg px-3 py-2.5">
+            <code className="text-xs font-mono text-ink break-all flex-1">{createdKey.key}</code>
             <button onClick={copy}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors flex-shrink-0">
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-brand text-ink hover:bg-brand-hot transition-colors flex-shrink-0">
               {copied ? <CheckCircle className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />} {copied ? 'Copied' : 'Copy'}
             </button>
           </div>
           <div className="flex justify-end">
             <button onClick={onClose}
-              className="px-4 py-2.5 bg-gray-100 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-200 transition-colors">Done</button>
+              className="px-4 py-2.5 bg-surface rounded-lg text-sm font-medium text-mute hover:bg-gray-200 transition-colors">Done</button>
           </div>
         </div>
       </div>
